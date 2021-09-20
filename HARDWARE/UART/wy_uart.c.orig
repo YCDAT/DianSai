@@ -1,0 +1,90 @@
+#include "wy_headfile.h"
+
+char USART_SEND_BUF[USART_SEND_LEN]; // 发送器，存放待发送的数据
+char UsartRecData[USART_REC_LEN]; 	 // 接收到的数据，存放接收到的完整数据
+
+void USART_SendStr_AsDeal(USART_TypeDef* USARTx, char* Uart_Str)
+{
+    char* p = Uart_Str;
+    USART_SendData(USARTx, DATAHEAD);               //发送首检验符
+    while(USART_GetFlagStatus(USART1, USART_FLAG_TC) != SET);// 等到一个字节的数据发送完
+    while(*p != '\0')
+    {
+        USART_SendData(USART1, *p++); // 发送下一位数据
+        while(USART_GetFlagStatus(USART1, USART_FLAG_TC) != SET);
+    }
+    USART_SendData(USART1, DATATAIL1);               //发送尾检验符1
+    while(USART_GetFlagStatus(USART1, USART_FLAG_TC) != SET);// 等到一个字节的数据发送完
+    USART_SendData(USART1, DATATAIL2);               //发送尾检验符2
+    while(USART_GetFlagStatus(USART1, USART_FLAG_TC) != SET);// 等到一个字节的数据发送完
+}
+
+void USART_SendStr(USART_TypeDef* USARTx, char* Uart_Str)
+{
+    char* p = Uart_Str;
+    while(*p != '\0')
+    {
+        USART_SendData(USART1, *p++); // 发送下一位数据
+        while(USART_GetFlagStatus(USART1, USART_FLAG_TC) != SET);
+    }
+}
+
+void USART_SendInt(USART_TypeDef* USARTx, int Uart_Int)
+{
+	char Uart_str[10];
+	sprintf((char*)Uart_str,"%5d",Uart_Int);// （u16) 打印到(char)。
+	USART_SendStr(USARTx, Uart_str);
+}
+
+
+void USART_SendFloat(USART_TypeDef* USARTx, float Uart_Float)
+{
+	char Uart_str[10];
+	sprintf((char*)Uart_str,"%7.2f",Uart_Float);// （u16) 打印到(char)。
+	USART_SendStr(USARTx, Uart_str);
+}
+
+
+void USART_SendToKeYou(void)
+{
+	int i;
+	float temp=0.0;
+	u8 ch;
+
+//电磁调试，不采取信号最值
+	Variable[0] =  Adc_Sample[L_up][1];
+	Variable[1] =  Adc_Sample[L_down][1];
+	Variable[2] =  Adc_Sample[R_up][1];
+	Variable[3] =  Adc_Sample[R_down][1];
+
+	
+  uart_putchar(USING_UART, 0x55);
+  uart_putchar(USING_UART, 0x11);
+  uart_putchar(USING_UART, 0xaa);
+  uart_putchar(USING_UART, 0x55);
+  uart_putchar(USING_UART, 0xaa);
+  uart_putchar(USING_UART, 0xff);
+  uart_putchar(USING_UART, 0x01);
+  uart_putchar(USING_UART, NUM_VAR);
+	
+	
+	
+ for(i=0;i<NUM_VAR;i++)
+  {
+    temp=Variable[i];
+
+	ch=BYTE3(temp);
+    uart_putchar(USING_UART, ch);
+
+	ch=BYTE2(temp);
+    uart_putchar(USING_UART, ch);
+
+	ch=BYTE1(temp);
+    uart_putchar(USING_UART, ch);
+
+    ch=BYTE0(temp);
+    uart_putchar(USING_UART, ch);
+  }
+  uart_putchar(USING_UART, 0x01);	
+}
+

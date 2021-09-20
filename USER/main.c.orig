@@ -1,0 +1,27 @@
+#include "stm32f10x.h"
+#include "delay.h"
+#include "wy_LED.h"
+
+int main(void)
+{
+	// 初始化延时函数
+	delay_init();
+	// 初始化LED的GPIO口（PB5和PE5）
+	LED_Init();
+	while(1)
+	{
+			// LED1和LED2都拉低
+	LED1 = 0;
+	LED2 = 0;
+	// LED1输出高电平
+	LED1 = 1;
+	// 延时500ms
+	delay_ms(500);
+	// LED1输出低电平LED2输出高电平
+	LED1 = 0;
+	LED2 = 1;
+	// 延时500ms
+	delay_ms(500);
+	}
+
+}
